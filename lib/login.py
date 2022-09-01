@@ -27,9 +27,8 @@ async def check_session():
     req = await as_client.get("https://www.linkedin.com/in/me")
     if req.status_code == 200:
         return as_client
-    else:
-        await as_client.aclose()
-        return False
+    await as_client.aclose()
+    return False
 
 async def check_and_login():
     as_client = await check_session()
@@ -70,8 +69,15 @@ async def login():
     }
 
     req = await as_client.post("https://www.linkedin.com/checkpoint/lg/login-submit", data=data)
-    if (req.status_code == 200 and not "<title>LinkedIn Login, Sign in | LinkedIn</title>" in req.text) or \
-        (req.status_code == 303 and req.headers["location"].strip("/") == "https://www.linkedin.com/feed"):
+    if (
+        req.status_code == 200
+        and "<title>LinkedIn Login, Sign in | LinkedIn</title>" not in req.text
+        or (
+            req.status_code == 303
+            and req.headers["location"].strip("/")
+            == "https://www.linkedin.com/feed"
+        )
+    ):
         with open(config.cookies_file, "w") as f:
             f.write(json.dumps(dict(as_client.cookies)))
 
